@@ -11,6 +11,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = tips
 TEMPLATE = app
+#TEMPLATE=lib
+CONFIG+=static
 
 
 SOURCES += main.cpp\

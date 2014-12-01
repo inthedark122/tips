@@ -18,9 +18,10 @@ public:
   ~MainWindow();
 
   bool openDB();
-  void insertRow();
-  void showAll();
   void createTabel();
+
+  void showAll(QString);
+  void serviceShow(QString);
 
   QString dbName = "tmp";
 
@@ -28,7 +29,12 @@ public slots:
   void add_to_db();
   void db_new();
   void db_delete();
-  void accept();
+  void main_delete();
+  void main_find();
+
+  // service
+  void service_add();
+  void service_delete();
 
 private:
   QSqlDatabase db;

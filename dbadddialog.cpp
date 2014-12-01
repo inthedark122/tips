@@ -14,6 +14,6 @@ DBAddDialog::~DBAddDialog()
   delete ui;
 }
 
-void DBAddDialog::accept(*parent) {
-  parent->accept();
+void DBAddDialog::accept() {
+
 }
