@@ -42,6 +42,7 @@ public slots:
   // service
   void service_add();
   void service_delete();
+  void service_find();
   // price
   void price_add();
   void price_delete();

@@ -27,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
   // Service
   connect(ui->service_add, SIGNAL(clicked()), this, SLOT(service_add()));
   connect(ui->service_delete, SIGNAL(clicked()), this, SLOT(service_delete()));
+  connect(ui->service_find, SIGNAL(clicked()), this, SLOT(service_find()));
 
   // price
   connect(ui->price_add, SIGNAL(clicked()), this, SLOT(price_add()));
@@ -68,17 +69,14 @@ void MainWindow::db_open() {
 void MainWindow::db_close() {
   if (db.open()) {
     db.close();
-    //QMessageBox::warning(this, ("Уведомление"), "База закрыта.");
     ui->db_status->setText("База закрыта.");
   } else {
-    //QMessageBox::warning(this, ("Ошибка"), "База не открыта.");
     ui->db_status->setText("База закрыта.");
   }
 }
 
 void MainWindow::db_add() {
   if (db.isOpen()) {
-    //QMessageBox::warning(this, ("Ошибка"), "Закройте базу перед созданием.");
     ui->db_status->setText("База уже открыта.");
     return;
   }
@@ -132,6 +130,8 @@ void MainWindow::showAll() {
 void MainWindow::mainShow(QString query = "") {
   while (ui->listDB->rowCount() > 0){ui->listDB->removeRow(0);}
   while (ui->service_company_id->count() > 0){ui->service_company_id->removeItem(0);}
+  while (ui->adres_company_id->count() > 0){ui->adres_company_id->removeItem(0);}
+  while (ui->pay_service_company_id->count() > 0){ui->pay_service_company_id->removeItem(0);}
   QSqlQuery a_query;
   if (query == "")
     a_query.exec("SELECT * FROM company;");
@@ -164,6 +164,14 @@ void MainWindow::mainShow(QString query = "") {
   QString str_service_find = "select * from service where company_id IN (%1);";
   QString str_service = str_service_find.arg(ids);
   serviceShow(str_service);
+
+  QString str_adres_find = "select * from adres where company_id IN (%1);";
+  QString str_adres = str_adres_find.arg(ids);
+  adresShow(str_adres);
+
+  QString str_pay_system_find = "select * from pay_system where company_id IN (%1);";
+  QString str_pay_system = str_pay_system_find.arg(ids);
+  pay_serviceShow(str_pay_system);
 }
 
 void MainWindow::main_add() {
@@ -203,6 +211,7 @@ void MainWindow::main_find() {
 // Сервисы
 void MainWindow::serviceShow(QString query) {
     while (ui->serviceTable->rowCount() > 0){ui->serviceTable->removeRow(0);}
+    while (ui->price_service_id->count() > 0){ui->price_service_id->removeItem(0);}
     QSqlQuery a_query;
     if (query == "")
       a_query.exec("SELECT * FROM service");
@@ -210,6 +219,7 @@ void MainWindow::serviceShow(QString query) {
       a_query.exec(query);
     QSqlRecord rec = a_query.record();
     int id_column = 0, company_id_column = 1, name_column = 2, desc_column = 3;
+    QString ids = "";
     while (a_query.next()) {
       int index = ui->serviceTable->rowCount();
       ui->serviceTable->insertRow(index);
@@ -217,6 +227,7 @@ void MainWindow::serviceShow(QString query) {
       QString id_str = a_query.value(rec.indexOf("id")).toString();
       QTableWidgetItem *id = new QTableWidgetItem(id_str);
       ui->serviceTable->setItem(index, id_column, id);
+      ids += id_str +",";
 
       QTableWidgetItem *company_id = new QTableWidgetItem(a_query.value(rec.indexOf("company_id")).toString());
       ui->serviceTable->setItem(index, company_id_column, company_id);
@@ -228,8 +239,22 @@ void MainWindow::serviceShow(QString query) {
       QTableWidgetItem *desc = new QTableWidgetItem(a_query.value(rec.indexOf("desc")).toString());
       ui->serviceTable->setItem(index, desc_column, desc);
 
-       ui->price_service_id->addItem(name_str, id_str);
+      ui->price_service_id->addItem(name_str, id_str);
     }
+    ids.remove(ids.length()-1,1);
+    QString str_price_find = "select p.id, p.price, p.valuta, s.name, p.service_id from price as p JOIN service AS s ON s.id = p.service_id where p.service_id IN (%1);";
+    QString str_price = str_price_find.arg(ids);
+    priceShow(str_price);
+}
+
+void MainWindow::service_find() {
+    int row = ui->serviceTable->currentRow();
+    if (row == -1) return;
+    int id = ui->serviceTable->item(row, 0)->text().toInt();
+    QString str_find_price = "select p.id, p.price, p.valuta, s.name, p.service_id from price as p JOIN service AS s ON s.id = p.service_id WHERE p.service_id = %1;";
+    QString find_price = str_find_price.arg(id);
+    qDebug() << find_price;
+    priceShow(find_price);
 }
 
 void MainWindow::service_add() {
@@ -262,7 +287,7 @@ void MainWindow::priceShow(QString query) {
     while (ui->priceTable->rowCount() > 0){ui->priceTable->removeRow(0);}
     QSqlQuery a_query;
     if (query == "")
-      a_query.exec("select * from price;");
+      a_query.exec("select p.id, p.price, p.valuta, s.name, p.service_id from price as p JOIN service AS s ON s.id = p.service_id;");
     else
       a_query.exec(query);
     QSqlRecord rec = a_query.record();
@@ -274,7 +299,7 @@ void MainWindow::priceShow(QString query) {
       QTableWidgetItem *id = new QTableWidgetItem(a_query.value(rec.indexOf("id")).toString());
       ui->priceTable->setItem(index, id_column, id);
 
-      QTableWidgetItem *service_id = new QTableWidgetItem(a_query.value(rec.indexOf("service_id")).toString());
+      QTableWidgetItem *service_id = new QTableWidgetItem(a_query.value(rec.indexOf("name")).toString());
       ui->priceTable->setItem(index, service_id_column, service_id);
 
       QTableWidgetItem *price = new QTableWidgetItem(a_query.value(rec.indexOf("price")).toString());
@@ -286,8 +311,8 @@ void MainWindow::priceShow(QString query) {
 }
 
 void MainWindow::price_add() {
-    int service_id_index = ui->service_company_id->currentIndex();
-    int service_id = ui->service_company_id->itemData(service_id_index).toInt();
+    int service_id_index = ui->price_service_id->currentIndex();
+    int service_id = ui->price_service_id->itemData(service_id_index).toInt();
     QString price = ui->price_price->text();
     QString valuta = ui->price_valuta->text();
     QSqlQuery a_query;

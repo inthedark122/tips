@@ -33,7 +33,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -162,6 +162,9 @@
        </property>
       </widget>
       <widget class="QLineEdit" name="main_id">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <property name="geometry">
         <rect>
          <x>112</x>
@@ -172,6 +175,15 @@
        </property>
        <property name="text">
         <string/>
+       </property>
+       <property name="frame">
+        <bool>true</bool>
+       </property>
+       <property name="dragEnabled">
+        <bool>false</bool>
+       </property>
+       <property name="readOnly">
+        <bool>false</bool>
        </property>
       </widget>
       <widget class="QLineEdit" name="main_name">
@@ -224,7 +236,7 @@
     </widget>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
-      <string>Услуги</string>
+      <string>Тарифный план</string>
      </attribute>
      <widget class="QTableWidget" name="serviceTable">
       <property name="geometry">
@@ -354,13 +366,26 @@
       <property name="geometry">
        <rect>
         <x>520</x>
-        <y>70</y>
+        <y>100</y>
         <width>75</width>
         <height>23</height>
        </rect>
       </property>
       <property name="text">
        <string>Удалить</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="service_find">
+      <property name="geometry">
+       <rect>
+        <x>520</x>
+        <y>70</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Поиск</string>
       </property>
      </widget>
     </widget>
@@ -886,7 +911,7 @@
      <rect>
       <x>16</x>
       <y>19</y>
-      <width>101</width>
+      <width>131</width>
       <height>20</height>
      </rect>
     </property>
@@ -896,15 +921,15 @@
      </font>
     </property>
     <property name="text">
-     <string>Имя таблицы</string>
+     <string>Название базы</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="db_name">
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>160</x>
       <y>20</y>
-      <width>201</width>
+      <width>181</width>
       <height>20</height>
      </rect>
     </property>
@@ -915,9 +940,9 @@
    <widget class="QLabel" name="label_19">
     <property name="geometry">
      <rect>
-      <x>340</x>
+      <x>350</x>
       <y>20</y>
-      <width>71</width>
+      <width>51</width>
       <height>21</height>
      </rect>
     </property>
