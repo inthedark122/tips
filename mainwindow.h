@@ -24,9 +24,6 @@ public:
   void mainShow(QString);
   void serviceShow(QString);
   void priceShow(QString);
-  void adresShow(QString);
-  void pay_serviceShow(QString);
-
   QString dbName;
 
 public slots:
@@ -46,12 +43,6 @@ public slots:
   // price
   void price_add();
   void price_delete();
-  // adres
-  void adres_add();
-  void adres_delete();
-  // pay_system
-  void pay_service_add();
-  void pay_service_delete();
 
 private:
   QSqlDatabase db;

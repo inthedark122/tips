@@ -32,17 +32,6 @@ MainWindow::MainWindow(QWidget *parent) :
   // price
   connect(ui->price_add, SIGNAL(clicked()), this, SLOT(price_add()));
   connect(ui->price_delete, SIGNAL(clicked()), this, SLOT(price_delete()));
-
-  // adres
-  connect(ui->adres_add, SIGNAL(clicked()), this, SLOT(adres_add()));
-  connect(ui->adres_delete, SIGNAL(clicked()), this, SLOT(adres_delete()));
-
-  // pay_service
-  connect(ui->pay_service_add, SIGNAL(clicked()), this, SLOT(pay_service_add()));
-  connect(ui->pay_service_delete, SIGNAL(clicked()), this, SLOT(pay_service_delete()));
-
-
-  //pay_system
 }
 
 MainWindow::~MainWindow(){
@@ -97,7 +86,6 @@ void MainWindow::db_add() {
 void MainWindow::db_delete() {
   if (db.open()) { db.close(); }
   QFile::remove(dbName);
-  //QMessageBox::warning(this, ("Уведомление"), "База удалена");
   ui->db_status->setText("удалена");
 }
 void MainWindow::createTabel() {
@@ -110,28 +98,18 @@ void MainWindow::createTabel() {
 
   QString table_price = "CREATE TABLE price (id integer PRIMARY KEY AUTOINCREMENT NOT NULL, service_id integer, price VARCHAR(255), valuta VARCHAR(255), FOREIGN KEY (service_id) REFERENCES service(id));";
   a_query.exec(table_price);
-
-  QString table_adres = "CREATE TABLE adres (id integer PRIMARY KEY AUTOINCREMENT NOT NULL, company_id integer, adres VARCHAR(255), city VARCHAR(255), FOREIGN KEY (company_id) REFERENCES company(id));";
-  a_query.exec(table_adres);
-
-  QString table_pay_system = "CREATE TABLE pay_system (id integer PRIMARY KEY AUTOINCREMENT NOT NULL, company_id integer, name VARCHAR(255), desc VARCHAR(255), FOREIGN KEY (company_id) REFERENCES company(id));";
-  a_query.exec(table_pay_system);
 }
 
 void MainWindow::showAll() {
   mainShow("");
   serviceShow("");
   priceShow("");
-  adresShow("");
-  pay_serviceShow("");
 }
 
 // Управление компаниями
 void MainWindow::mainShow(QString query = "") {
   while (ui->listDB->rowCount() > 0){ui->listDB->removeRow(0);}
   while (ui->service_company_id->count() > 0){ui->service_company_id->removeItem(0);}
-  while (ui->adres_company_id->count() > 0){ui->adres_company_id->removeItem(0);}
-  while (ui->pay_service_company_id->count() > 0){ui->pay_service_company_id->removeItem(0);}
   QSqlQuery a_query;
   if (query == "")
     a_query.exec("SELECT * FROM company;");
@@ -157,21 +135,11 @@ void MainWindow::mainShow(QString query = "") {
     ui->listDB->setItem(index, site_column, site);
 
     ui->service_company_id->addItem(name_str, id_str);
-    ui->adres_company_id->addItem(name_str, id_str);
-    ui->pay_service_company_id->addItem(name_str, id_str);
   }
   ids.remove(ids.length()-1,1);
-  QString str_service_find = "select * from service where company_id IN (%1);";
+  QString str_service_find = "SELECT s.id, s.name, s.desc, c.name as company_name FROM service as s JOIN company AS c ON c.id = s.company_id where company_id IN (%1);";
   QString str_service = str_service_find.arg(ids);
   serviceShow(str_service);
-
-  QString str_adres_find = "select * from adres where company_id IN (%1);";
-  QString str_adres = str_adres_find.arg(ids);
-  adresShow(str_adres);
-
-  QString str_pay_system_find = "select * from pay_system where company_id IN (%1);";
-  QString str_pay_system = str_pay_system_find.arg(ids);
-  pay_serviceShow(str_pay_system);
 }
 
 void MainWindow::main_add() {
@@ -214,7 +182,7 @@ void MainWindow::serviceShow(QString query) {
     while (ui->price_service_id->count() > 0){ui->price_service_id->removeItem(0);}
     QSqlQuery a_query;
     if (query == "")
-      a_query.exec("SELECT * FROM service");
+      a_query.exec("SELECT s.id, s.name, s.desc, c.name as company_name FROM service as s JOIN company AS c ON c.id = s.company_id;");
     else
       a_query.exec(query);
     QSqlRecord rec = a_query.record();
@@ -223,13 +191,13 @@ void MainWindow::serviceShow(QString query) {
     while (a_query.next()) {
       int index = ui->serviceTable->rowCount();
       ui->serviceTable->insertRow(index);
-
+      qDebug() << index;
       QString id_str = a_query.value(rec.indexOf("id")).toString();
       QTableWidgetItem *id = new QTableWidgetItem(id_str);
       ui->serviceTable->setItem(index, id_column, id);
       ids += id_str +",";
 
-      QTableWidgetItem *company_id = new QTableWidgetItem(a_query.value(rec.indexOf("company_id")).toString());
+      QTableWidgetItem *company_id = new QTableWidgetItem(a_query.value(rec.indexOf("company_name")).toString());
       ui->serviceTable->setItem(index, company_id_column, company_id);
 
       QString name_str = a_query.value(rec.indexOf("name")).toString();
@@ -335,102 +303,3 @@ void MainWindow::price_delete() {
   priceShow("");
 }
 
-// Адреса
-void MainWindow::adresShow(QString query) {
-    while (ui->adresTable->rowCount() > 0){ui->adresTable->removeRow(0);}
-    QSqlQuery a_query;
-    if (query == "")
-      a_query.exec("SELECT * FROM adres");
-    else
-      a_query.exec(query);
-    QSqlRecord rec = a_query.record();
-    int id_column = 0, company_id_column = 1, adres_column = 2, city_column = 3;
-    while (a_query.next()) {
-      int index = ui->adresTable->rowCount();
-      ui->adresTable->insertRow(index);
-      QTableWidgetItem *id = new QTableWidgetItem(a_query.value(rec.indexOf("id")).toString());
-      ui->adresTable->setItem(index, id_column, id);
-
-      QTableWidgetItem *company_id = new QTableWidgetItem(a_query.value(rec.indexOf("company_id")).toString());
-      ui->adresTable->setItem(index, company_id_column, company_id);
-
-      QTableWidgetItem *adres = new QTableWidgetItem(a_query.value(rec.indexOf("adres")).toString());
-      ui->adresTable->setItem(index, adres_column, adres);
-
-      QTableWidgetItem *city = new QTableWidgetItem(a_query.value(rec.indexOf("city")).toString());
-      ui->adresTable->setItem(index, city_column, city);
-    }
-}
-void MainWindow::adres_add() {
-    int company_id_index = ui->adres_company_id->currentIndex();
-    int company_id = ui->adres_company_id->itemData(company_id_index).toInt();
-    QString adres = ui->adres_adres->text();
-    QString city = ui->adres_city->text();
-    QSqlQuery a_query;
-    QString str_insert = "INSERT INTO adres(company_id, adres, city) VALUES (%1, '%2', '%3');";
-    QString str = str_insert.arg(company_id).arg(adres).arg(city);
-    bool b = a_query.exec(str);
-    if (!b) QMessageBox::warning(this, ("Ошибка"), "Кажется данные не вставляются, проверьте дверь, может она закрыта?");
-    adresShow("");
-}
-void MainWindow::adres_delete() {
-  int row = ui->adresTable->currentRow();
-  if (row == -1) return;
-  int id = ui->adresTable->item(row, 0)->text().toInt();
-  QSqlQuery a_query;
-  QString str_delete = "DELETE from adres where id=%1;";
-  QString str = str_delete.arg(id);
-  bool b = a_query.exec(str);
-  if (!b) QMessageBox::warning(this, ("Ошибка"), "Не могу удалить");
-  adresShow("");
-}
-
-// Платежная система
-void MainWindow::pay_serviceShow(QString query) {
-    while (ui->pay_serviceTable->rowCount() > 0){ui->pay_serviceTable->removeRow(0);}
-    QSqlQuery a_query;
-    if (query == "")
-      a_query.exec("SELECT * FROM pay_system");
-    else
-      a_query.exec(query);
-    QSqlRecord rec = a_query.record();
-    int id_column = 0, company_id_column = 1, name_column = 2, desc_column = 3;
-    while (a_query.next()) {
-      int index = ui->pay_serviceTable->rowCount();
-      ui->pay_serviceTable->insertRow(index);
-      QTableWidgetItem *id = new QTableWidgetItem(a_query.value(rec.indexOf("id")).toString());
-      ui->pay_serviceTable->setItem(index, id_column, id);
-
-      QTableWidgetItem *company_id = new QTableWidgetItem(a_query.value(rec.indexOf("company_id")).toString());
-      ui->pay_serviceTable->setItem(index, company_id_column, company_id);
-
-      QTableWidgetItem *name = new QTableWidgetItem(a_query.value(rec.indexOf("name")).toString());
-      ui->pay_serviceTable->setItem(index, name_column, name);
-
-      QTableWidgetItem *desc = new QTableWidgetItem(a_query.value(rec.indexOf("desc")).toString());
-      ui->pay_serviceTable->setItem(index, desc_column, desc);
-    }
-}
-void MainWindow::pay_service_add() {
-    int company_id_index = ui->pay_service_company_id->currentIndex();
-    int company_id = ui->pay_service_company_id->itemData(company_id_index).toInt();
-    QString name = ui->pay_service_name->text();
-    QString desc = ui->pay_service_desc->text();
-    QSqlQuery a_query;
-    QString str_insert = "INSERT INTO pay_system(company_id, name, desc) VALUES (%1, '%2', '%3');";
-    QString str = str_insert.arg(company_id).arg(name).arg(desc);
-    bool b = a_query.exec(str);
-    if (!b) QMessageBox::warning(this, ("Ошибка"), "Кажется данные не вставляются.");
-    pay_serviceShow("");
-}
-void MainWindow::pay_service_delete() {
-  int row = ui->pay_serviceTable->currentRow();
-  if (row == -1) return;
-  int id = ui->pay_serviceTable->item(row, 0)->text().toInt();
-  QSqlQuery a_query;
-  QString str_delete = "DELETE from pay_system where id=%1;";
-  QString str = str_delete.arg(id);
-  bool b = a_query.exec(str);
-  if (!b) QMessageBox::warning(this, ("Ошибка"), "Не могу удалить");
-  pay_serviceShow("");
-}
